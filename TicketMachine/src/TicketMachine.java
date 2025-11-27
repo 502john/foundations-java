@@ -5,14 +5,16 @@ class TicketMachine
 {
     private TrieNode root;
     private TrieNode curr;
-    private Deque<TrieNode> input;
+    protected Deque<TrieNode> stack;
+    protected Deque<Character> input_chars;
 
     public TicketMachine(String[] destinations)
     {
         root = new TrieNode();
-        input = new LinkedList<>();
+        stack = new LinkedList<>();
+        input_chars = new LinkedList<>();
 
-        this.input.add(root);
+        this.stack.add(root);
         this.curr = root;
         buildTrie(destinations);
     }
@@ -23,8 +25,8 @@ class TicketMachine
 
         for (String str : str_array)
         {
-            TrieNode curr = root;
-
+            TrieNode curr = this.root;
+            
             char[] innerArr = str.toCharArray();
             for ( char ch : innerArr )
             {
@@ -38,18 +40,67 @@ class TicketMachine
                 {
                     curr.children[index] = new TrieNode();
                     curr.childrenSet.add(ch);
-
+                    
                 }
+                curr.words_associated +=1;
 
                 curr = curr.children[index];
             }
 
-            curr.completeWord = true;
+            curr.end_of_word = true;
             
 
             
         }
     }
+
+    public void auto_complete()
+    {
+        if (curr.words_associated != 1)
+        {
+            return;
+        }
+        // Curr was already added, iterate until children finishes
+        
+        char c;
+        int index;
+        while (true)
+        {
+            if (curr.childrenSet.size() < 1 )
+            {
+                return;
+            }
+            // issue is here
+            c =  new ArrayList<>(curr.childrenSet).get(0);
+
+            index = c - 'A';
+            System.out.print(c);
+            System.out.println("");
+
+
+
+            if (curr.end_of_word && curr.children[index] == null)
+            {
+                StringBuilder sb = new StringBuilder();
+                while (input_chars.size() > 0 )
+                {
+                    sb.append(input_chars.getFirst());
+                }
+            }
+            curr = curr.children[index];
+            stack.push(curr);
+        
+        }
+
+        
+
+
+
+        
+
+    }
+
+
 
     // Does not Iterate
     public List<Character> question()
@@ -67,23 +118,6 @@ class TicketMachine
     public List<Character> question(char c) 
     {
         
-        if (c == '\b') 
-        { 
-            if (input.size() <= 1) 
-            {
-                return new ArrayList<>();
-            }
-
-            input.removeLast();
-            curr = input.peekLast();
-            return new ArrayList<>(curr.childrenSet);
-        }
-
-        // if (c == '\n') 
-        // {
-        //     // Empty List
-        //     return new ArrayList<>();
-        // }
 
         if (c < 'A' || c > 'Z')
         {
@@ -91,7 +125,6 @@ class TicketMachine
         }
 
         if (curr == null) {
-            input.push(null);
             return new ArrayList<>();
         }
 
@@ -105,7 +138,14 @@ class TicketMachine
 
         List<Character> result = new ArrayList<>(curr.childrenSet);
 
-        input.push(curr);
+        stack.push(curr);
+        input_chars.push(c);
+
+        if (result.size() == 1 && curr.words_associated == 1)
+        {
+            auto_complete();
+            return new ArrayList<>();
+        }
 
         return result;
 
