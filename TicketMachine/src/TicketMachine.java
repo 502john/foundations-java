@@ -43,10 +43,11 @@ class TicketMachine
                     
                 }
                 curr.words_associated +=1;
-
                 curr = curr.children[index];
             }
 
+            // Leaf Nodes
+            curr.words_associated += 1;
             curr.end_of_word = true;
             
 
@@ -60,45 +61,48 @@ class TicketMachine
         {
             return;
         }
-        // Curr was already added, iterate until children finishes
         
         char c;
         int index;
+        StringBuilder sb = new StringBuilder();
+
+        
+        // Iterate until children finishes
         while (true)
         {
             if (curr.childrenSet.size() < 1 )
             {
                 return;
             }
-            // issue is here
+
             c =  new ArrayList<>(curr.childrenSet).get(0);
 
             index = c - 'A';
-            System.out.print(c);
-            System.out.println("");
-
-
-
-            if (curr.end_of_word && curr.children[index] == null)
-            {
-                StringBuilder sb = new StringBuilder();
-                while (input_chars.size() > 0 )
-                {
-                    sb.append(input_chars.getFirst());
-                }
-            }
             curr = curr.children[index];
             stack.push(curr);
+            input_chars.push(c);
+
+            if (curr.end_of_word && curr.childrenSet.size() == 0)
+            {
+                break;
+            }
         
         }
 
+            
+
+
+        while (input_chars.size() > 0 )
+        {
+            sb.append(input_chars.getLast());
+            input_chars.removeLast();
+        }
+
+        System.out.println(sb.toString());
         
-
-
-
         
-
     }
+
 
 
 
